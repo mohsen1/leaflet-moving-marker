@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+        "types": [
+            "leaflet"
+        ],
+        "outDir": "dist",
+        "sourceMap": true
+    }
+}

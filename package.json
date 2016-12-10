@@ -1,0 +1,35 @@
+{
+  "name": "leaflet-moving-marker",
+  "version": "0.0.0",
+  "description": "Leaflet moving marker",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "prestart": "npm run watch &",
+    "start": "http-server -o"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mohsen1/leaflet-moving-marker.git"
+  },
+  "keywords": [
+    "Leaflet",
+    "Marker"
+  ],
+  "author": "Mohsen Azimi <me@azimi.me>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mohsen1/leaflet-moving-marker/issues"
+  },
+  "homepage": "https://github.com/mohsen1/leaflet-moving-marker#readme",
+  "peerDependencies": {
+    "leaflet": "1.0.2"
+  },
+  "devDependencies": {
+    "@types/leaflet": "^1.0.38",
+    "http-server": "^0.9.0",
+    "typescript": "^2.1.4"
+  }
+}
