@@ -1,17 +1,34 @@
 const Leaflet = L as any;
 
+const noop = () => {};;
+
+interface MovingMarkerDestination {
+    latLng: L.LatLng;
+    duration: number;
+}
+
 interface MovingMarkerOptions {
-    endLatLng?: L.LatLng;
-    duration?: number;
+    onMoveCompleted?: () => void;
+    destinations: Array<MovingMarkerDestination>;
 }
 
 Leaflet.MovingMarker = Leaflet.Marker.extend({
     initialize(startLatLng: L.LatLng, options: MovingMarkerOptions = {}) {
         this.startedAt = Date.now();
         this.startLatLng = L.latLng(startLatLng);
-        this.endLatLng = L.latLng(options.endLatLng || startLatLng);
-        this.duration = options.duration || 1000;
-        Leaflet.Marker.prototype.initialize.call(this, startLatLng, {...options});
+        Leaflet.Marker.prototype.initialize.call(this, startLatLng, options);
+
+        if (!options.destinations || !options.destinations.length) {
+            return;
+        }
+
+        this.onMoveCompleted = options.onMoveCompleted || noop;
+
+        this.destinations = options.destinations;
+        const nextDestination = this.destinations.shift();
+
+        this.nextLatLng = L.latLng(nextDestination.latLng);
+        this.duration = nextDestination.duration || 1000;
         this.isZooming = false;
     },
 
@@ -38,7 +55,7 @@ Leaflet.MovingMarker = Leaflet.Marker.extend({
             requestAnimationFrame(this.setCurrentLatLng.bind(this));
         } else {
             this.setLatLng(this.endLatLng);
-            return;
+            return this.onMoveCompleted();
         }
 
         if (!this.isZooming) {
