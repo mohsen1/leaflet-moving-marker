@@ -15,5 +15,9 @@ Leaflet.movingMarker(latLng: L.LatLng, {
 })
 ```
 
+### Development
+
+`npm install` and `npm start` to watch for changes and see the results in browser.
+
 ### License
 MIT
