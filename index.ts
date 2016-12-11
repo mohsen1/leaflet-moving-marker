@@ -1,27 +1,25 @@
 const Leaflet = L as any;
 
+interface MovingMarkerOptions {
+    endLatLng?: L.LatLng;
+    duration?: number;
+}
+
 Leaflet.MovingMarker = Leaflet.Marker.extend({
-    initialize(
-            startLatLng: L.LatLng,
-            endLatLng: L.LatLng,
-            duration: number = 1000,
-            map: L.Map,
-            options: {timingFunction?: (t: number) => number} = {timingFunction: (t: number) => t}
-    ) {
+    initialize(startLatLng: L.LatLng, options: MovingMarkerOptions = {}) {
         this.startedAt = Date.now();
         this.startLatLng = L.latLng(startLatLng);
-        this.endLatLng = L.latLng(endLatLng);
-        this.duration = duration;
-        this.timingFunction = options.timingFunction;
-        Leaflet.Marker.prototype.initialize.call(this, startLatLng, options);
+        this.endLatLng = L.latLng(options.endLatLng || startLatLng);
+        this.duration = options.duration || 1000;
+        Leaflet.Marker.prototype.initialize.call(this, startLatLng, {...options});
         this.isZooming = false;
-        this.start(); // TODO: option to not auto start
-        map.addEventListener('zoomstart', () => {
-            this.isZooming = true;
-        });
-        map.addEventListener('zoomend', () => {
-            this.isZooming = false;
-        });
+    },
+
+    onAdd(map) {
+        L.Marker.prototype.onAdd.call(this, map);
+        this.start();
+        map.addEventListener('zoomstart', () => { this.isZooming = true; });
+        map.addEventListener('zoomend', () => { this.isZooming = false; });
     },
 
     start() {
@@ -43,23 +41,17 @@ Leaflet.MovingMarker = Leaflet.Marker.extend({
             return;
         }
 
-        if (this.isZooming) {
-            return;
+        if (!this.isZooming) {
+            const t = now - this.startedAt;
+            const lat = this.startLatLng.lat + ((this.endLatLng.lat - this.startLatLng.lat) / this.duration * t);
+            const lng = this.startLatLng.lng + ((this.endLatLng.lng - this.startLatLng.lng) / this.duration * t);
+            this.setLatLng({lat, lng});
         }
 
-        const t = this.timingFunction(now - this.startedAt);
-        const lat = this.startLatLng.lat + ((this.endLatLng.lat - this.startLatLng.lat) / this.duration * t);
-        const lng = this.startLatLng.lng + ((this.endLatLng.lng - this.startLatLng.lng) / this.duration * t);
-        this.setLatLng({lat, lng});
+        return;
     }
 });
 
-Leaflet.movingMarker = function(
-    startLatLng: L.LatLng,
-    endLatLng: L.LatLng,
-    duration: number = 1000,
-    map: L.Map,
-    options: {timingFunction?: (t: number) => number} = {timingFunction: (t: number) => t}
-) {
-    return new Leaflet.MovingMarker(startLatLng, endLatLng, duration, map,options);
+Leaflet.movingMarker = function(startLatLng: L.LatLng, options: MovingMarkerOptions = {}) {
+    return new Leaflet.MovingMarker(startLatLng, options);
 }

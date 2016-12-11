@@ -24,7 +24,10 @@
                 zoom: 14
             });
             map.addLayer(osm);
-            var marker = L.movingMarker([37.809185, -122.477351], [37.825766, -122.479218], 5000, map);
+            var marker = L.movingMarker([37.809185, -122.477351], {
+                endLatLng: [37.825766, -122.479218],
+                duration: 5000,
+            });
             marker.addTo(map);
         </script>
     </body>
