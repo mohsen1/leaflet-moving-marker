@@ -1,31 +1,49 @@
 const Leaflet = L as any;
 
+const noop = () => {};;
+
+interface MovingMarkerDestination {
+    latLng: L.LatLng;
+    duration: number;
+}
+
 interface MovingMarkerOptions {
-    endLatLng?: L.LatLng;
-    duration?: number;
+    onMoveCompleted?: () => void;
+    destinations?: Array<MovingMarkerDestination>;
 }
 
 Leaflet.MovingMarker = Leaflet.Marker.extend({
     initialize(startLatLng: L.LatLng, options: MovingMarkerOptions = {}) {
         this.startedAt = Date.now();
         this.startLatLng = L.latLng(startLatLng);
-        this.endLatLng = L.latLng(options.endLatLng || startLatLng);
-        this.duration = options.duration || 1000;
-        Leaflet.Marker.prototype.initialize.call(this, startLatLng, {...options});
         this.isZooming = false;
+        this.onMoveCompleted = options.onMoveCompleted || noop;
+        this.defaultDuration = 1000;
+        Leaflet.Marker.prototype.initialize.call(this, startLatLng, options);
+
+        if (!options.destinations || !options.destinations.length) {
+            return this.onMoveCompleted();
+        }
+
+        this.destinations = options.destinations;
+        this.step();
     },
 
     onAdd(map) {
-        L.Marker.prototype.onAdd.call(this, map);
+        Leaflet.Marker.prototype.onAdd.call(this, map);
         this.start();
         map.addEventListener('zoomstart', () => { this.isZooming = true; });
         map.addEventListener('zoomend', () => { this.isZooming = false; });
     },
 
+    step() {
+        const nextDestination = this.destinations.shift();
+        this.nextLatLng = L.latLng(nextDestination.latLng);
+        this.duration = nextDestination.duration || this.defaultDuration;
+    },
+
     start() {
-        if (!this.startLatLng.equals(this.endLatLng)) {
-            requestAnimationFrame(this.setCurrentLatLng.bind(this));
-        }
+        requestAnimationFrame(this.setCurrentLatLng.bind(this));
     },
 
     setCurrentLatLng() {
@@ -37,14 +55,22 @@ Leaflet.MovingMarker = Leaflet.Marker.extend({
         if (now < end) {
             requestAnimationFrame(this.setCurrentLatLng.bind(this));
         } else {
-            this.setLatLng(this.endLatLng);
-            return;
+            if (this.destinations.length) {
+                // step to next destination
+                this.startedAt = Date.now();
+                this.startLatLng = this.nextLatLng;
+                this.step();
+                requestAnimationFrame(this.setCurrentLatLng.bind(this));
+            } else {
+                this.setLatLng(this.nextLatLng);
+                return this.onMoveCompleted();
+            }
         }
 
         if (!this.isZooming) {
             const t = now - this.startedAt;
-            const lat = this.startLatLng.lat + ((this.endLatLng.lat - this.startLatLng.lat) / this.duration * t);
-            const lng = this.startLatLng.lng + ((this.endLatLng.lng - this.startLatLng.lng) / this.duration * t);
+            const lat = this.startLatLng.lat + ((this.nextLatLng.lat - this.startLatLng.lat) / this.duration * t);
+            const lng = this.startLatLng.lng + ((this.nextLatLng.lng - this.startLatLng.lng) / this.duration * t);
             this.setLatLng({lat, lng});
         }
 
