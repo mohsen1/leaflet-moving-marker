@@ -1,6 +1,6 @@
 {
   "name": "leaflet-moving-marker",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Leaflet moving marker",
   "main": "index.js",
   "scripts": {
