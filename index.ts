@@ -14,9 +14,9 @@ interface MovingMarkerOptions {
 
 Leaflet.MovingMarker = Leaflet.Marker.extend({
     initialize(startLatLng: L.LatLng, options: MovingMarkerOptions = {}) {
-        this.startedAt = Date.now();
         this.startLatLng = L.latLng(startLatLng);
         this.isZooming = false;
+        this.isPaused = false;
         this.defaultDuration = 1000;
         Leaflet.Marker.prototype.initialize.call(this, startLatLng, options);
         this.fire('destination', startLatLng);
@@ -44,8 +44,21 @@ Leaflet.MovingMarker = Leaflet.Marker.extend({
     },
 
     start() {
+        this.startedAt = Date.now();
+        this.isPaused = false;
         this.fire('start');
-        requestAnimationFrame(this.setCurrentLatLng.bind(this));
+        this.requestAnimationFrameSetLatLng()
+    },
+
+    pause() {
+        this.fire('paused');
+        this.isPaused = true;
+    },
+
+    requestAnimationFrameSetLatLng() {
+        if (!this.isPaused) {
+            requestAnimationFrame(this.setCurrentLatLng.bind(this));
+        }
     },
 
     setCurrentLatLng() {
@@ -55,14 +68,14 @@ Leaflet.MovingMarker = Leaflet.Marker.extend({
 
         // Schedule the next tick
         if (now < end) {
-            requestAnimationFrame(this.setCurrentLatLng.bind(this));
+            this.requestAnimationFrameSetLatLng()
         } else {
             if (this.destinations.length) {
                 // step to next destination
                 this.startedAt = Date.now();
                 this.startLatLng = this.nextLatLng;
                 this.step();
-                requestAnimationFrame(this.setCurrentLatLng.bind(this));
+                this.requestAnimationFrameSetLatLng()
             } else {
                 this.setLatLng(this.nextLatLng);
                 return this.fire('destinationsdrained');

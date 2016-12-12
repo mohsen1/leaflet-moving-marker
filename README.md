@@ -23,6 +23,12 @@ interface MovingMarkerOptions {
 Leaflet.movingMarker(latLng: L.LatLng, options: MovingMarkerOptions);
 ```
 
+#### `marker.start()`
+Starts the marker movement.
+
+#### `marker.pause()`
+Pause marker movement.
+
 ### Events
 
 #### `'start'`
@@ -31,9 +37,11 @@ When marker starts moving.
 #### `'destination'`
 When marker arrives to a new destination. Called with the destination object.
 
-
 #### `'destinationsdrained'`
 When all destinations are moved to and there is no more destination to go to.
+
+#### `'paused'`
+When marker is paused this event is fired.
 
 ### Example
 ```js

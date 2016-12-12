@@ -15,6 +15,9 @@
                 transform-origin: center;
                 transition: transform linear 100ms;
             }
+            button {
+                font-size: 5rem;
+            }
         </style>
     </head>
     <body>
@@ -137,6 +140,29 @@
             });
 
             marker.addTo(map);
+
+
+            // Controls
+            var MoveControl = L.Control.extend({
+                options: {position: 'topright'},
+                onAdd(map) {
+                    var pauseBtn = document.createElement('button');
+                    pauseBtn.innerText = '⏸';
+                    pauseBtn.onclick = function() {
+                        marker.pause();
+                    };
+                    var playBtn = document.createElement('button');
+                    playBtn.innerText = '▶️';
+                    playBtn.onclick = function() {
+                        marker.start();
+                    };
+                    var div = document.createElement('div');
+                    div.appendChild(pauseBtn);
+                    div.appendChild(playBtn);
+                    return div;
+                },
+            });
+            map.addControl(new MoveControl());
         </script>
     </body>
 </html>
