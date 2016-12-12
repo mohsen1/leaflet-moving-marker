@@ -1,13 +1,13 @@
 # Leaflet Moving Marker
 
-### Usage
+## Usage
 
-##### Installation
+### Installation
 ```
 npm install --save leaflet-moving-marker
 ```
 
-##### API
+### API
 Provide an array of `destinations` and marker will walk through each destination until array of destinations is drained.
 
 ```ts
@@ -18,11 +18,22 @@ interface MovingMarkerDestination {
 }
 
 interface MovingMarkerOptions {
-    onMoveCompleted?: () => void;
     destinations?: Array<MovingMarkerDestination>;
 }
 Leaflet.movingMarker(latLng: L.LatLng, options: MovingMarkerOptions);
 ```
+
+### Events
+
+#### `'start'`
+When marker starts moving.
+
+#### `'destination'`
+When marker arrives to a new destination. Called with the destination object.
+
+
+#### `'destinationsdrained'`
+When all destinations are moved to and there is no more destination to go to.
 
 ##### Example
 ```js
@@ -41,13 +52,12 @@ ar marker = L.movingMarker([37.809185, -122.477351], {
             duration: 1000
         }
     ],
-    onMoveCompleted: function() {
-        console.log('done');
-    },
 });
 
 marker.addTo(map);
 ```
+
+
 
 ### Development
 

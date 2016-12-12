@@ -8,8 +8,8 @@ interface MovingMarkerDestination {
 }
 
 interface MovingMarkerOptions {
-    onMoveCompleted?: () => void;
     destinations?: Array<MovingMarkerDestination>;
+    iconElement?: HTMLElement;
 }
 
 Leaflet.MovingMarker = Leaflet.Marker.extend({
@@ -17,12 +17,12 @@ Leaflet.MovingMarker = Leaflet.Marker.extend({
         this.startedAt = Date.now();
         this.startLatLng = L.latLng(startLatLng);
         this.isZooming = false;
-        this.onMoveCompleted = options.onMoveCompleted || noop;
         this.defaultDuration = 1000;
         Leaflet.Marker.prototype.initialize.call(this, startLatLng, options);
+        this.fire('destination', startLatLng);
 
         if (!options.destinations || !options.destinations.length) {
-            return this.onMoveCompleted();
+            return this.fire('destinationsdrained');
         }
 
         this.destinations = options.destinations;
@@ -38,11 +38,13 @@ Leaflet.MovingMarker = Leaflet.Marker.extend({
 
     step() {
         const nextDestination = this.destinations.shift();
+        this.fire('destination', nextDestination);
         this.nextLatLng = L.latLng(nextDestination.latLng);
         this.duration = nextDestination.duration || this.defaultDuration;
     },
 
     start() {
+        this.fire('start');
         requestAnimationFrame(this.setCurrentLatLng.bind(this));
     },
 
@@ -63,7 +65,7 @@ Leaflet.MovingMarker = Leaflet.Marker.extend({
                 requestAnimationFrame(this.setCurrentLatLng.bind(this));
             } else {
                 this.setLatLng(this.nextLatLng);
-                return this.onMoveCompleted();
+                return this.fire('destinationsdrained');
             }
         }
 
