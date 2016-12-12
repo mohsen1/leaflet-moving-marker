@@ -55,8 +55,6 @@ Leaflet.MovingMarker = Leaflet.Marker.extend({
         if (now < end) {
             requestAnimationFrame(this.setCurrentLatLng.bind(this));
         } else {
-            this.setLatLng(this.nextLatLng);
-
             if (this.destinations.length) {
                 // step to next destination
                 this.startedAt = Date.now();
@@ -64,6 +62,7 @@ Leaflet.MovingMarker = Leaflet.Marker.extend({
                 this.step();
                 requestAnimationFrame(this.setCurrentLatLng.bind(this));
             } else {
+                this.setLatLng(this.nextLatLng);
                 return this.onMoveCompleted();
             }
         }
