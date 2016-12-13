@@ -12,8 +12,23 @@ interface MovingMarkerOptions {
     iconElement?: HTMLElement;
 }
 
+interface MovingMarker extends L.Marker, MovingMarkerOptions {
+    isZooming: boolean;
+    isPaused: boolean;
+    defaultDuration: number;
+    startLatLng: L.LatLng;
+    nextLatLng: L.LatLng;
+    duration: number;
+    startedAt: number;
+    initialize(startLatLng: L.LatLng, options: MovingMarkerOptions): void;
+    start(): void;
+    step(): void;
+    requestAnimationFrameSetLatLng(): void;
+    setCurrentLatLng(): void;
+}
+
 Leaflet.MovingMarker = Leaflet.Marker.extend({
-    initialize(startLatLng: L.LatLng, options: MovingMarkerOptions = {}) {
+    initialize(this: MovingMarker, startLatLng: L.LatLng, options: MovingMarkerOptions = {}) {
         this.startLatLng = L.latLng(startLatLng);
         this.isZooming = false;
         this.isPaused = false;
@@ -22,46 +37,47 @@ Leaflet.MovingMarker = Leaflet.Marker.extend({
         this.fire('destination', startLatLng);
 
         if (!options.destinations || !options.destinations.length) {
-            return this.fire('destinationsdrained');
+            this.fire('destinationsdrained');
+            return;
         }
 
         this.destinations = options.destinations;
         this.step();
     },
 
-    onAdd(map) {
+    onAdd(this: MovingMarker, map: L.Map) {
         Leaflet.Marker.prototype.onAdd.call(this, map);
         this.start();
         map.addEventListener('zoomstart', () => { this.isZooming = true; });
         map.addEventListener('zoomend', () => { this.isZooming = false; });
     },
 
-    step() {
-        const nextDestination = this.destinations.shift();
+    step(this: MovingMarker) {
+        const nextDestination = this.destinations!.shift();
         this.fire('destination', nextDestination);
-        this.nextLatLng = L.latLng(nextDestination.latLng);
-        this.duration = nextDestination.duration || this.defaultDuration;
+        this.nextLatLng = L.latLng(nextDestination!.latLng);
+        this.duration = nextDestination!.duration || this.defaultDuration;
     },
 
-    start() {
+    start(this: MovingMarker) {
         this.startedAt = Date.now();
         this.isPaused = false;
         this.fire('start');
         this.requestAnimationFrameSetLatLng()
     },
 
-    pause() {
+    pause(this: MovingMarker) {
         this.fire('paused');
         this.isPaused = true;
     },
 
-    requestAnimationFrameSetLatLng() {
+    requestAnimationFrameSetLatLng(this: MovingMarker) {
         if (!this.isPaused) {
             requestAnimationFrame(this.setCurrentLatLng.bind(this));
         }
     },
 
-    setCurrentLatLng() {
+    setCurrentLatLng(this: MovingMarker) {
         const now = Date.now();
         const end = this.startedAt + this.duration;
 
@@ -70,7 +86,7 @@ Leaflet.MovingMarker = Leaflet.Marker.extend({
         if (now < end) {
             this.requestAnimationFrameSetLatLng()
         } else {
-            if (this.destinations.length) {
+            if (this.destinations!.length) {
                 // step to next destination
                 this.startedAt = Date.now();
                 this.startLatLng = this.nextLatLng;
