@@ -32,6 +32,7 @@ Leaflet.MovingMarker = Leaflet.Marker.extend({
     onAdd(map) {
         Leaflet.Marker.prototype.onAdd.call(this, map);
         this.start();
+        this.map = map;
         map.addEventListener('zoomstart', () => { this.isZooming = true; });
         map.addEventListener('zoomend', () => { this.isZooming = false; });
     },
@@ -65,7 +66,6 @@ Leaflet.MovingMarker = Leaflet.Marker.extend({
         const now = Date.now();
         const end = this.startedAt + this.duration;
 
-
         // Schedule the next tick
         if (now < end) {
             this.requestAnimationFrameSetLatLng()
@@ -87,6 +87,9 @@ Leaflet.MovingMarker = Leaflet.Marker.extend({
             const lat = this.startLatLng.lat + ((this.nextLatLng.lat - this.startLatLng.lat) / this.duration * t);
             const lng = this.startLatLng.lng + ((this.nextLatLng.lng - this.startLatLng.lng) / this.duration * t);
             this.setLatLng({lat, lng});
+            const rawPoint = this.map.project({lat,lng});
+            const point = rawPoint._subtract(this.map.getPixelOrigin());
+            L.DomUtil.setPosition(this.getElement(), point);
         }
 
         return;
