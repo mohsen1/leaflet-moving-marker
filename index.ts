@@ -58,12 +58,14 @@ Leaflet.MovingMarker = Leaflet.Marker.extend({
             this.zoomStartedAt = Date.now();
             this.pause();
             this.getElement().style.animation = 'none';
+            this.getElement().style.webkitAnimation = 'none';
             this.setLatLng(this.destinations[this.currentIndex].latLng);
         });
         map.addEventListener('zoomend', () => {
             this.isZooming = false;
             const element = this.getElement();
             if (element) {
+                element.style.webkitAnimationPlayState = 'running';
                 element.style.animationPlayState = 'running';
             }
             this.setLatLng(this.destinations[this.currentIndex].latLng);
@@ -87,10 +89,19 @@ Leaflet.MovingMarker = Leaflet.Marker.extend({
                     transform: translate3d(${nextPoint.x}px, ${nextPoint.y}px, 0);
                 }
             }
+            @-webkit-keyframes ${animationName} {
+                from {
+                    -webkit-transform: translate3d(${currentPoint.x}px, ${currentPoint.y}px, 0);
+                }
+                to {
+                    -webkit-transform: translate3d(${nextPoint.x}px, ${nextPoint.y}px, 0);
+                }
+            }
         `;
         const element = this.getElement();
         this.styleElement.textContent = animation;
         element.style.animation = `${animationName} ${duration}ms 1 linear`;
+        element.style.webkitAnimation = `${animationName} ${duration}ms 1 linear`;
         setTimeout(() => {
             element.style.animation = 'none';
             this.setLatLng(nextDestination.latLng);
@@ -113,6 +124,7 @@ Leaflet.MovingMarker = Leaflet.Marker.extend({
         const element = this.getElement();
         if (element) {
             element.style.animationPlayState = 'paused';
+            element.style.webkitAnimationPlayState = 'paused';
         }
     },
 });
