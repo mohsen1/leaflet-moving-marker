@@ -108,6 +108,8 @@ Leaflet.MovingMarker = Leaflet.Marker.extend({
             this.currentIndex++;
             if (this.currentIndex < (this.destinations.length - 2)) {
                 this.step();
+            } else {
+                this.fire('destinationsdrained');
             }
         }, duration);
     },
