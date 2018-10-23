@@ -45,7 +45,7 @@ When marker is paused this event is fired.
 
 ### Example
 ```js
-ar marker = L.movingMarker([37.809185, -122.477351], {
+var marker = L.movingMarker([37.809185, -122.477351], {
     destinations: [
         {
             latLng: [37.825766, -122.479218],
